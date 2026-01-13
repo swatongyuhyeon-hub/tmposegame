@@ -10,15 +10,17 @@ body {
   margin: 0;
   padding: 20px;
   gap: 20px;
-  background-color: #222; /* Dark theme */
+  background-color: #222;
+  /* Dark theme */
   color: #eee;
 }
 
 h1 {
   margin: 0;
   font-size: 32px;
-  color: #FFD700; /* Gold color */
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+  color: #FFD700;
+  /* Gold color */
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .button-container {
@@ -36,7 +38,7 @@ button {
   background-color: #4CAF50;
   color: white;
   transition: transform 0.1s, background-color 0.2s;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }
 
 button:hover {
@@ -56,49 +58,88 @@ button:disabled {
   box-shadow: none;
 }
 
-.canvas-container {
+/* Main Layout */
+.main-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  justify-content: center;
+  align-items: center;
+  /* Center vertically if needed */
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  /* Center horizontally */
+}
+
+.section-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-container h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #bbb;
+}
+
+/* Webcam specific */
+#webcam-container canvas {
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  /* Mirror effect for webcam */
+  transform: scaleX(-1);
+}
+
+/* Game Canvas specific */
+.canvas-wrapper {
   position: relative;
-  display: inline-block;
-  box-shadow: 0 0 20px rgba(0,0,0,0.5);
   border-radius: 8px;
   overflow: hidden;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+  /* Gold glow */
 }
 
 #canvas {
   display: block;
-  background-color: #000;
-  /* Width/Height handled by JS attributes, but CSS ensures responsiveness logic if needed */
+  background-color: #111;
+  /* Solid dark background for game */
+  border: 2px solid #444;
 }
 
+/* Prediction Overlay */
 #max-prediction {
   position: absolute;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: rgba(0, 0, 0, 0.6);
-  color: #00ff00;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 20px;
-  font-weight: bold;
-  pointer-events: none;
-  border: 1px solid #00ff00;
+  top: 15px;
+  right: 15px;
+  left: auto;
+  transform: none;
+  background-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(4px);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 #label-container {
   display: flex;
-  flex-direction: row; /* Horizontal layout */
-  gap: 10px;
-  flex-wrap: wrap;
-  justify-content: center;
+  flex-direction: column;
+  gap: 5px;
+  width: 200px;
 }
 
 #label-container div {
-  padding: 6px 12px;
+  padding: 8px 12px;
   background-color: #333;
-  border-radius: 4px;
-  text-align: center;
+  border-radius: 6px;
+  text-align: left;
   font-size: 14px;
-  color: #aaa;
-  border: 1px solid #444;
+  color: #ddd;
+  border-left: 4px solid #555;
+  display: flex;
+  justify-content: space-between;
 }

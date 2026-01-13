@@ -14,25 +14,25 @@ class GameEngine {
         this.level = 1;
         this.timeLimit = 60;
         this.isGameActive = false;
-        
+
         // Player State
         this.playerLane = 1; // 0: Left, 1: Center, 2: Right
-        
+
         // Objects
         this.items = []; // Falling items
         this.lastSpawnTime = 0;
         this.spawnInterval = 1000; // ms
-        
+
         // Settings
         this.lanes = [50, 150, 250]; // X coordinates for lanes (will be adjusted on resize)
         this.baseSpeed = 3;
-        
+
         // Callbacks
         this.onScoreChange = null;
         this.onGameEnd = null;
         this.ctx = null;
         this.canvas = null;
-        
+
         // Images (Placeholders)
         this.assets = {
             basket: "🛒",
@@ -46,6 +46,21 @@ class GameEngine {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
         this.resize();
+        this.setupKeyboardInput(); // Add keyboard listener
+    }
+
+    setupKeyboardInput() {
+        window.addEventListener('keydown', (e) => {
+            if (!this.isGameActive) return;
+
+            if (e.key === 'ArrowLeft') {
+                this.playerLane = 0;
+            } else if (e.key === 'ArrowRight') {
+                this.playerLane = 2;
+            } else if (e.key === 'ArrowDown' || e.key === ' ') {
+                this.playerLane = 1;
+            }
+        });
     }
 
     resize() {
@@ -63,17 +78,17 @@ class GameEngine {
         this.items = [];
         this.playerLane = 1; // Start at Center
         this.spawnInterval = 1000;
-        
+
         this.lastTime = Date.now();
         this.gameLoop();
-        
+
         this.startTimer();
     }
 
     stop() {
         this.isGameActive = false;
         if (this.timerInterval) clearInterval(this.timerInterval);
-        
+
         if (this.onGameEnd) {
             this.onGameEnd(this.score, this.level);
         }
@@ -93,6 +108,9 @@ class GameEngine {
     onPoseDetected(poseLabel) {
         if (!this.isGameActive) return;
 
+        // [Modified] Keyboard Only Mode
+        // Pose inputs are ignored for control, but we keep the method structure.
+        /*
         // Normalized comparison (ignore case)
         const label = poseLabel.toLowerCase();
 
@@ -103,6 +121,7 @@ class GameEngine {
         } else if (label === 'center') {
             this.playerLane = 1;
         }
+        */
     }
 
     update() {
@@ -172,7 +191,7 @@ class GameEngine {
 
     addScore(points) {
         this.score += points;
-        
+
         // Level up
         if (this.score >= this.level * 500) {
             this.level++;
@@ -188,32 +207,38 @@ class GameEngine {
     draw() {
         if (!this.ctx) return;
 
-        // Clear previous frame (partial clear if needed, but normally main.js handles canvas clear)
-        // Here we draw ON TOP of the webcam feed usually, or on a separate canvas.
-        // Assuming we share the canvas or have our own. 
-        // Let's assume we are drawing on the same context passed in init()
-        
-        // NOTE: main.js clears canvas for webcam. we should draw after webcam.
-        
-        // Draw Lanes (Optional visualization)
-        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+        // Clear with background color (Black)
+        this.ctx.fillStyle = "#111"; // Almost black
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+        // Draw Lanes
+        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.2)'; // More visible lanes
         for (let x of this.lanes) {
-            this.ctx.fillRect(x - 2, 0, 4, this.canvas.height);
+            this.ctx.fillRect(x - 3, 0, 6, this.canvas.height);
         }
+
+        // Helper to draw with glow
+        const drawWithGlow = (text, x, y) => {
+            this.ctx.save();
+            this.ctx.shadowBlur = 20;
+            this.ctx.shadowColor = "white";
+            this.ctx.font = "80px Arial"; // Bigger size
+            this.ctx.textAlign = "center";
+            this.ctx.fillText(text, x, y);
+            this.ctx.restore();
+        };
 
         // Draw Basket/Player
         const playerX = this.lanes[this.playerLane];
-        this.ctx.font = "60px Arial";
-        this.ctx.textAlign = "center";
-        this.ctx.fillText(this.assets.basket, playerX, this.canvas.height - 30);
+        drawWithGlow(this.assets.basket, playerX, this.canvas.height - 30);
 
         // Draw Items
         for (let item of this.items) {
             const x = this.lanes[item.lane];
             const icon = this.assets[item.type];
-            this.ctx.fillText(icon, x, item.y);
+            drawWithGlow(icon, x, item.y);
         }
-        
+
         // Draw HUD
         this.ctx.fillStyle = "white";
         this.ctx.font = "bold 20px Arial";
@@ -227,11 +252,8 @@ class GameEngine {
         if (!this.isGameActive) return;
 
         this.update();
-        // Drawing is handled by main.js loop usually? 
-        // Actually main.js loop calls poseEngine. 
-        // We should hook into the drawPose or a centralized loop.
-        // For now, let's expose specific update/draw methods that main.js can call.
-        
+        this.draw(); // [Fix] Draw every frame independent of pose input
+
         requestAnimationFrame(() => this.gameLoop());
     }
 

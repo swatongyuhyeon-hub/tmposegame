@@ -33,31 +33,35 @@ async function init() {
       smoothingFrames: 5 // 부드럽게
     });
 
-    // 3. 캔버스 설정
+    // 3. 캔버스 설정 (게임용)
     const canvas = document.getElementById("canvas");
-    canvas.width = 400;
-    canvas.height = 400;
+    canvas.width = 600;
+    canvas.height = 600;
     ctx = canvas.getContext("2d");
 
     // 4. GameEngine 초기화 및 연결
     gameEngine = new GameEngine();
     gameEngine.init(canvas); // Canvas 전달
 
-    // 5. Label Container 설정
+    // [Removed] Webcam Canvas Append (Hidden)
+
+    // 6. Label Container 설정
     labelContainer = document.getElementById("label-container");
-    labelContainer.innerHTML = "";
+    // labelContainer.innerHTML = ""; // Hidden
+    /*
     for (let i = 0; i < maxPredictions; i++) {
       labelContainer.appendChild(document.createElement("div"));
     }
+    */
 
-    // 6. PoseEngine 콜백
+    // 7. PoseEngine 콜백
     poseEngine.setPredictionCallback(handlePrediction);
     // Draw loop is handled by PoseEngine's internal loop calling this:
     poseEngine.setDrawCallback(drawLoop);
 
-    // 7. 시작
+    // 8. 시작
     poseEngine.start();
-    startGameMode(); // 게임 바로 시작 또는 버튼 분리 가능
+    startGameMode(); // 게임 바로 시작
 
     stopBtn.disabled = false;
   } catch (error) {
@@ -85,7 +89,7 @@ function handlePrediction(predictions, pose) {
 
   // 디버그 레이블
   for (let i = 0; i < predictions.length; i++) {
-    const classDesc = predictions[i].className + ": " + predictions[i].probability.toFixed(2);
+    const classDesc = `<span>${predictions[i].className}</span>: <span>${(predictions[i].probability * 100).toFixed(0)}%</span>`;
     labelContainer.childNodes[i].innerHTML = classDesc;
   }
 
@@ -106,22 +110,26 @@ function handlePrediction(predictions, pose) {
  * 그리기 루프 (PoseEngine에서 매 프레임 호출)
  */
 function drawLoop(pose) {
-  // 1. 웹캠 그리기 background
+  // 1. 웹캠 캔버스에 스켈레톤 그리기 (선택)
+  // 웹캠 캔버스는 DOM에 따로 떨어져 있지만, 원한다면 여기서 그 위에 덧그릴 수 있습니다.
   if (poseEngine.webcam && poseEngine.webcam.canvas) {
-    ctx.drawImage(poseEngine.webcam.canvas, 0, 0, 400, 400);
+    const webcamCtx = poseEngine.webcam.canvas.getContext('2d');
+    // 웹캠 비디오는 TM 라이브러리가 자동으로 그림
+
+    // 스켈레톤 그리기
+    if (pose) {
+      const minConf = 0.5;
+      tmPose.drawKeypoints(pose.keypoints, minConf, webcamCtx);
+      tmPose.drawSkeleton(pose.keypoints, minConf, webcamCtx);
+    }
   }
 
-  // 2. 포즈 스켈레톤 그리기 (선택)
-  if (pose) {
-    const minConf = 0.5;
-    tmPose.drawKeypoints(pose.keypoints, minConf, ctx);
-    tmPose.drawSkeleton(pose.keypoints, minConf, ctx);
-  }
-
-  // 3. 게임 오버레이 그리기
+  // 2. 게임 캔버스 업데이트 (전용 캔버스)
+  /*
   if (gameEngine && gameEngine.isGameActive) {
-    gameEngine.draw(); // 게임 요소(바구니, 과일) 그리기
+    gameEngine.draw();
   }
+  */
 }
 
 function startGameMode() {
