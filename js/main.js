@@ -134,5 +134,5 @@ function drawLoop(pose) {
 
 function startGameMode() {
   if (!gameEngine) return;
-  gameEngine.start({ timeLimit: 60 });
+  gameEngine.start({ timeLimit: 180 }); // 3분
 }

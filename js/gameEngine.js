@@ -20,6 +20,7 @@ class GameEngine {
 
         // Objects
         this.items = []; // Falling items
+        this.itemsSpawned = 0; // Total items spawned counter
         this.lastSpawnTime = 0;
         this.spawnInterval = 1000; // ms
 
@@ -38,7 +39,8 @@ class GameEngine {
             basket: "🛒",
             apple: "🍎",
             banana: "🍌",
-            bomb: "💣"
+            bomb: "💣",
+            chicken: "🍗"
         };
     }
 
@@ -76,6 +78,7 @@ class GameEngine {
         this.level = 1;
         this.timeLimit = config.timeLimit || 60;
         this.items = [];
+        this.itemsSpawned = 0;
         this.playerLane = 1; // Start at Center
         this.spawnInterval = 1000;
 
@@ -158,15 +161,23 @@ class GameEngine {
     }
 
     spawnItem() {
+        this.itemsSpawned++;
+
         const lane = Math.floor(Math.random() * 3); // 0, 1, 2
-        const typeRand = Math.random();
         let type = 'apple';
         let speed = this.baseSpeed + (this.level * 0.5);
 
-        if (typeRand > 0.9) {
-            type = 'bomb'; // 10% chance
-        } else if (typeRand > 0.7) {
-            type = 'banana'; // 20% chance
+        // Check for Chicken Spawn (Every 30th item)
+        if (this.itemsSpawned % 30 === 0) {
+            type = 'chicken';
+            speed += 2; // Chicken is faster!
+        } else {
+            const typeRand = Math.random();
+            if (typeRand > 0.9) {
+                type = 'bomb'; // 10% chance
+            } else if (typeRand > 0.7) {
+                type = 'banana'; // 20% chance
+            }
         }
 
         this.items.push({
@@ -186,6 +197,8 @@ class GameEngine {
             this.addScore(100);
         } else if (item.type === 'banana') {
             this.addScore(200);
+        } else if (item.type === 'chicken') {
+            this.addScore(1000);
         }
     }
 
@@ -193,7 +206,7 @@ class GameEngine {
         this.score += points;
 
         // Level up
-        if (this.score >= this.level * 500) {
+        if (this.score >= this.level * 1500) {
             this.level++;
             // Increase difficulty
             this.spawnInterval = Math.max(400, 1000 - (this.level * 100));
